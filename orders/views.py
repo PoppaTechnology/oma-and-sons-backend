@@ -2,6 +2,7 @@ from rest_framework import status, permissions, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from decimal import Decimal
+from django.db import transaction
 import uuid
 
 from .models import Order, OrderItem, PromoCode
@@ -50,116 +51,133 @@ class CheckoutView(APIView):
         if not raw_items:
             return Response({'error': 'No items in order payload or cart.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Resolve items and compute subtotal
-        order_items_to_create = []
-        subtotal = Decimal('0.00')
-
-        for item_data in raw_items:
-            variant_id = item_data.get('variant_id')
-            product_id = item_data.get('productId') or item_data.get('product_id')
-            quantity = int(item_data.get('quantity', 1))
-
-            variant = None
-            if variant_id:
-                variant = ProductVariant.objects.select_related('product').filter(id=variant_id).first()
-            elif product_id:
-                if str(product_id).isdigit():
-                    variant = ProductVariant.objects.select_related('product').filter(product_id=product_id).first()
-                if not variant:
-                    product = Product.objects.filter(slug=product_id).first()
-                    if product:
-                        variant = product.variants.first()
-
-            if not variant:
-                continue
-
-            item_subtotal = Decimal(str(variant.price)) * quantity
-            subtotal += item_subtotal
-
-            order_items_to_create.append({
-                'variant': variant,
-                'product_name': variant.product.name,
-                'variant_name': variant.variant_name,
-                'product_slug': variant.product.slug,
-                'size': variant.size,
-                'image': variant.image,
-                'quantity': quantity,
-                'unit_price': variant.price,
-                'subtotal': item_subtotal
-            })
-
-        if not order_items_to_create:
-            return Response({'error': 'Could not resolve any valid product variants for checkout.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Delivery method & fee
+        # Delivery method & fee (computed before the atomic block; doesn't touch stock)
         delivery_method = data.get('deliveryMethod', 'standard')
         fulfillment = data.get('fulfillment', 'ship')
         if fulfillment == 'pickup':
             delivery_method = 'pickup'
-
         delivery_fee = DELIVERY_RATES.get(delivery_method, Decimal('2500.00'))
-
-        # Tax calculation
-        tax_amount = (subtotal * TAX_RATE).quantize(Decimal('0.01'))
-
-        # Discount promo code
-        discount_code_str = data.get('discountCode', '').strip()
-        discount_amount = Decimal('0.00')
-        if discount_code_str:
-            promo = PromoCode.objects.filter(code__iexact=discount_code_str, is_active=True).first()
-            if promo and promo.is_valid():
-                discount_amount = ((subtotal * promo.discount_percent) / Decimal('100.00')).quantize(Decimal('0.01'))
-            elif discount_code_str.lower() == 'omawhite':
-                # Default 10% prototype code fallback
-                discount_amount = (subtotal * Decimal('0.10')).quantize(Decimal('0.01'))
-
-        total_amount = subtotal - discount_amount + delivery_fee + tax_amount
 
         # Pickup store if applicable
         pickup_store_str = data.get('pickupStore') or data.get('pickup_store') or ''
         if not pickup_store_str and data.get('pickupStoreId'):
             pickup_store_str = f"Store #{data.get('pickupStoreId')}"
 
-        # Create Order
+        discount_code_str = data.get('discountCode', '').strip()
         user = request.user if request.user.is_authenticated else None
-        order = Order.objects.create(
-            user=user,
-            first_name=data['firstName'],
-            last_name=data['lastName'],
-            email=data['email'],
-            phone_number=data['phone'],
-            fulfillment_type=fulfillment,
-            delivery_method=delivery_method,
-            delivery_address=data.get('address', ''),
-            city=data.get('city', ''),
-            state=data.get('state', ''),
-            pickup_store=pickup_store_str,
-            subtotal=subtotal,
-            delivery_fee=delivery_fee,
-            tax_amount=tax_amount,
-            discount_amount=discount_amount,
-            discount_code=discount_code_str,
-            total_amount=total_amount,
-            order_status='PENDING'
-        )
 
-        for item_kwargs in order_items_to_create:
-            OrderItem.objects.create(order=order, **item_kwargs)
+        # Resolve items, validate stock/availability, compute totals, and create
+        # the Order/OrderItem/Payment records inside a single atomic transaction.
+        # select_for_update() locks each requested variant row so two concurrent
+        # checkouts for the same variant cannot both pass the stock check for
+        # quantity that only exists once.
+        with transaction.atomic():
+            order_items_to_create = []
+            subtotal = Decimal('0.00')
 
-        # Create initial Payment record
-        payment_ref = f"OS-PST-{uuid.uuid4().hex[:12].upper()}"
-        Payment.objects.create(
-            order=order,
-            payment_provider='PAYSTACK',
-            payment_reference=payment_ref,
-            payment_status='PENDING',
-            amount=total_amount
-        )
+            for item_data in raw_items:
+                variant_id = item_data.get('variant_id')
+                product_id = item_data.get('productId') or item_data.get('product_id')
+                quantity = int(item_data.get('quantity', 1))
 
-        # Clear cart if user had an active cart
-        if user:
-            Cart.objects.filter(user=user).update(session_key=None)
-            Cart.objects.filter(user=user).first() and Cart.objects.filter(user=user).first().items.all().delete()
+                variant = None
+                if variant_id:
+                    variant = ProductVariant.objects.select_related('product').select_for_update().filter(id=variant_id).first()
+                elif product_id:
+                    if str(product_id).isdigit():
+                        variant = ProductVariant.objects.select_related('product').select_for_update().filter(product_id=product_id).first()
+                    if not variant:
+                        product = Product.objects.filter(slug=product_id).first()
+                        if product:
+                            variant = product.variants.select_for_update().first()
+
+                if not variant:
+                    continue
+
+                if not variant.available or quantity > variant.stock_quantity:
+                    return Response(
+                        {
+                            'error': f"'{variant.product.name}' ({variant.variant_name}) is not available in the requested quantity.",
+                            'available_quantity': variant.stock_quantity,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                item_subtotal = Decimal(str(variant.price)) * quantity
+                subtotal += item_subtotal
+
+                order_items_to_create.append({
+                    'variant': variant,
+                    'product_name': variant.product.name,
+                    'variant_name': variant.variant_name,
+                    'product_slug': variant.product.slug,
+                    'size': variant.size,
+                    'image': variant.image,
+                    'quantity': quantity,
+                    'unit_price': variant.price,
+                    'subtotal': item_subtotal
+                })
+
+            if not order_items_to_create:
+                return Response({'error': 'Could not resolve any valid product variants for checkout.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Tax calculation
+            tax_amount = (subtotal * TAX_RATE).quantize(Decimal('0.01'))
+
+            # Discount promo code (PromoCode model is the single source of truth)
+            discount_amount = Decimal('0.00')
+            if discount_code_str:
+                promo = PromoCode.objects.filter(code__iexact=discount_code_str, is_active=True).first()
+                if promo and promo.is_valid():
+                    discount_amount = ((subtotal * promo.discount_percent) / Decimal('100.00')).quantize(Decimal('0.01'))
+
+            total_amount = subtotal - discount_amount + delivery_fee + tax_amount
+
+            # Create Order
+            order = Order.objects.create(
+                user=user,
+                first_name=data['firstName'],
+                last_name=data['lastName'],
+                email=data['email'],
+                phone_number=data['phone'],
+                fulfillment_type=fulfillment,
+                delivery_method=delivery_method,
+                delivery_address=data.get('address', ''),
+                city=data.get('city', ''),
+                state=data.get('state', ''),
+                pickup_store=pickup_store_str,
+                subtotal=subtotal,
+                delivery_fee=delivery_fee,
+                tax_amount=tax_amount,
+                discount_amount=discount_amount,
+                discount_code=discount_code_str,
+                total_amount=total_amount,
+                order_status='PENDING'
+            )
+
+            for item_kwargs in order_items_to_create:
+                OrderItem.objects.create(order=order, **item_kwargs)
+                # Stock represents the actual quantity available; decrement now
+                # that the order line is confirmed, inside the same transaction
+                # and using the row-locked variant instance.
+                variant = item_kwargs['variant']
+                variant.stock_quantity -= item_kwargs['quantity']
+                variant.save(update_fields=['stock_quantity'])
+
+            # Create initial Payment record
+            payment_ref = f"OS-PST-{uuid.uuid4().hex[:12].upper()}"
+            Payment.objects.create(
+                order=order,
+                payment_provider='PAYSTACK',
+                payment_reference=payment_ref,
+                payment_status='PENDING',
+                amount=total_amount
+            )
+
+            # Clear cart if user had an active cart
+            if user:
+                Cart.objects.filter(user=user).update(session_key=None)
+                Cart.objects.filter(user=user).first() and Cart.objects.filter(user=user).first().items.all().delete()
 
         serializer = OrderDetailSerializer(order)
         return Response({
@@ -306,15 +324,6 @@ class ValidatePromoCodeView(APIView):
                 'discount_percent': promo.discount_percent,
                 'discount_amount': discount_amount,
                 'message': f"{promo.discount_percent}% discount applied!"
-            })
-        elif code.lower() == 'omawhite':
-            discount_amount = (subtotal * Decimal('0.10')).quantize(Decimal('0.01'))
-            return Response({
-                'valid': True,
-                'code': 'OMAWHITE',
-                'discount_percent': Decimal('10.00'),
-                'discount_amount': discount_amount,
-                'message': "10% discount applied!"
             })
 
         return Response({

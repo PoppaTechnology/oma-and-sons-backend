@@ -309,7 +309,7 @@ class VerifyPaymentView(APIView):
         # Integrity Check 2: Amount must match expected Order amount
         expected_amount = payment.amount
         verified_amount = verify_result.amount
-        if verified_amount is None or verified_amount < expected_amount:
+        if verified_amount is None or verified_amount != expected_amount:
             logger.error(f"Security Alert: Amount mismatch for ref {reference}. Expected {expected_amount}, verified {verified_amount}")
             payment.mark_failed(gateway_response=verify_result.gateway_response)
             return Response(
@@ -382,7 +382,7 @@ class PaystackWebhookView(APIView):
         currency = data.get('currency', 'NGN').upper()
         amount_naira = Decimal(str(amount_kobo)) / Decimal('100.00')
 
-        if currency != 'NGN' or amount_naira < payment.amount:
+        if currency != 'NGN' or amount_naira != payment.amount:
             logger.error(f"Paystack webhook amount/currency mismatch for ref {reference}.")
             return Response({'error': 'Amount or currency mismatch.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -437,7 +437,7 @@ class FlutterwaveWebhookView(APIView):
 
         # Perform verification check with Flutterwave API to ensure event legitimacy
         verify_result = flw_service.verify_payment(reference=payment.payment_reference, transaction_id=str(tx_id) if tx_id else None)
-        if not verify_result.verified or verify_result.amount < payment.amount or verify_result.currency != 'NGN':
+        if not verify_result.verified or verify_result.amount != payment.amount or verify_result.currency != 'NGN':
             logger.error(f"Flutterwave webhook verification failed for ref {payment.payment_reference}.")
             return Response({'error': 'Verification failed.'}, status=status.HTTP_400_BAD_REQUEST)
 
