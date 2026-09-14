@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+﻿from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from decimal import Decimal
 from products.models import Category, Product, ProductVariant
@@ -87,7 +87,7 @@ class Command(BaseCommand):
                 'is_featured': True,
                 'is_new_arrival': False,
                 'is_hot_deal': True,
-                'image': '/assets/professional-stand-mixer-series-7.png',
+                'image': '/media/products/oma-product-professional-stand-mixer.jpg',
                 'description': 'Engineered for precision and power, the Series 7 stand mixer brings professional-grade baking to your kitchen. Features a 7-quart capacity, 10-speed control, and durable all-metal construction. Perfect for heavy, dense doughs or large batches.'
             },
             {
@@ -101,7 +101,7 @@ class Command(BaseCommand):
                 'is_featured': True,
                 'is_new_arrival': False,
                 'is_hot_deal': False,
-                'image': '/assets/pro-series-professional-blender.png',
+                'image': '/media/products/oma-product-professional-blender.jpg',
                 'description': 'High-performance blending for sauces, smoothies, soups, and everyday prep. A robust motor and durable jug make quick work of your kitchen routine.'
             },
             {
@@ -115,7 +115,7 @@ class Command(BaseCommand):
                 'is_featured': False,
                 'is_new_arrival': True,
                 'is_hot_deal': False,
-                'image': '/assets/premium-espresso-maker.png',
+                'image': '/media/products/oma-product-premium-espresso-maker.jpg',
                 'description': 'A compact espresso maker for rich, café-style coffee at home, with a clean stainless finish designed for the everyday kitchen.'
             },
             {
@@ -129,7 +129,7 @@ class Command(BaseCommand):
                 'is_featured': True,
                 'is_new_arrival': False,
                 'is_hot_deal': True,
-                'image': '/assets/premium-stainless-steel-kettle.png',
+                'image': '/media/products/oma-product-stainless-kettle.jpg',
                 'description': 'A reliable 1.7L electric kettle with a polished stainless-steel body, fast boil performance, and a simple everyday silhouette.'
             },
 
@@ -145,7 +145,7 @@ class Command(BaseCommand):
                 'is_featured': True,
                 'is_new_arrival': False,
                 'is_hot_deal': True,
-                'image': '/assets/classic-oxford-shoes.png',
+                'image': '/media/products/oma-product-classic-oxford-shoes.jpg',
                 'description': 'A polished lace-up Oxford with a classic formal profile, smooth leather-look upper, and versatile finish for everyday occasions.'
             },
             {
@@ -159,7 +159,7 @@ class Command(BaseCommand):
                 'is_featured': False,
                 'is_new_arrival': True,
                 'is_hot_deal': False,
-                'image': '/assets/essential-white-sneakers.png',
+                'image': '/media/products/oma-product-essential-white-sneakers.jpg',
                 'description': 'Clean everyday sneakers with a crisp white finish, comfortable low-profile shape, and easy pairing across casual wardrobes.'
             },
             {
@@ -173,7 +173,7 @@ class Command(BaseCommand):
                 'is_featured': False,
                 'is_new_arrival': False,
                 'is_hot_deal': False,
-                'image': '/assets/heritage-leather-loafers.png',
+                'image': '/media/products/oma-product-heritage-leather-loafers.jpg',
                 'description': 'Classic slip-on loafers with a refined leather-look finish, made to move easily between work and weekend styling.'
             },
             {
@@ -187,7 +187,7 @@ class Command(BaseCommand):
                 'is_featured': False,
                 'is_new_arrival': False,
                 'is_hot_deal': False,
-                'image': '/assets/canvas-high-top-sneakers.png',
+                'image': '/media/products/oma-product-canvas-high-top-sneakers.jpg',
                 'description': 'Lightweight canvas high-tops with a casual vintage profile and supportive lace-up construction.'
             },
 
@@ -203,7 +203,7 @@ class Command(BaseCommand):
                 'is_featured': True,
                 'is_new_arrival': True,
                 'is_hot_deal': False,
-                'image': '/assets/vintage-tweed-blazer.png',
+                'image': '/media/products/oma-product-vintage-tweed-blazer.jpg',
                 'description': 'A structured vintage-inspired tweed blazer with a softly tailored fit, earthy texture, and versatile everyday appeal.'
             },
             {
@@ -218,7 +218,7 @@ class Command(BaseCommand):
                 'is_featured': True,
                 'is_new_arrival': False,
                 'is_hot_deal': True,
-                'image': '/assets/silk-champagne-blouse.png',
+                'image': '/media/products/oma-product-silk-champagne-blouse.jpg',
                 'description': 'A light, elegant champagne blouse with a fluid drape and understated finish for easy elevated dressing.'
             },
             {
@@ -232,7 +232,7 @@ class Command(BaseCommand):
                 'is_featured': False,
                 'is_new_arrival': False,
                 'is_hot_deal': False,
-                'image': '/assets/classic-blue-denim-jacket.png',
+                'image': '/media/products/oma-product-classic-blue-denim-jacket.jpg',
                 'description': 'A timeless indigo denim jacket with a relaxed unisex cut, practical pockets, and a familiar everyday layer.'
             },
             {
@@ -246,7 +246,7 @@ class Command(BaseCommand):
                 'is_featured': False,
                 'is_new_arrival': True,
                 'is_hot_deal': False,
-                'image': '/assets/chunky-knit-wool-sweater.png',
+                'image': '/media/products/oma-product-chunky-knit-wool-sweater.jpg',
                 'description': 'A textured chunky-knit sweater with soft warmth, a relaxed shape, and a tactile winter-ready finish.'
             },
 
@@ -262,7 +262,7 @@ class Command(BaseCommand):
                 'is_featured': True,
                 'is_new_arrival': False,
                 'is_hot_deal': True,
-                'image': '/assets/premium-leather-tote.png',
+                'image': '/media/products/oma-product-premium-leather-tote.jpg',
                 'description': 'A practical tan leather-look tote with clean handles and generous daily carrying space.'
             },
             {
@@ -276,7 +276,7 @@ class Command(BaseCommand):
                 'is_featured': True,
                 'is_new_arrival': True,
                 'is_hot_deal': False,
-                'image': '/assets/executive-leather-tote.png',
+                'image': '/media/products/oma-product-executive-leather-tote.jpg',
                 'description': 'A refined structured tote in deep onyx, designed for polished workdays and elevated everyday carry.'
             },
             {
@@ -290,7 +290,7 @@ class Command(BaseCommand):
                 'is_featured': False,
                 'is_new_arrival': False,
                 'is_hot_deal': False,
-                'image': '/assets/classic-leather-tote.png',
+                'image': '/media/products/oma-product-classic-leather-tote.jpg',
                 'description': 'A classic leather-look tote with a balanced, understated profile and generous room for daily essentials.'
             },
             {
@@ -304,7 +304,7 @@ class Command(BaseCommand):
                 'is_featured': False,
                 'is_new_arrival': False,
                 'is_hot_deal': False,
-                'image': '/assets/camel-crossbody-bag.png',
+                'image': '/media/products/oma-product-camel-crossbody-bag.jpg',
                 'description': 'A compact camel crossbody with a simple adjustable strap and hands-free everyday practicality.'
             }
         ]
@@ -340,3 +340,4 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(f'Successfully seeded {len(raw_products)} products with variants.'))
         self.stdout.write(self.style.SUCCESS('Database seeding completed successfully!'))
+
