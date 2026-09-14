@@ -12,13 +12,15 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs, unquote
+
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load environment variables from .env file
-load_dotenv(BASE_DIR / '.env', override=True)
+load_dotenv(BASE_DIR / '.env', override=False)
 
 
 # Quick-start development settings - unsuitable for production
@@ -91,13 +93,32 @@ WSGI_APPLICATION = 'oma_and_sons.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    database_url = os.environ.get('DATABASE_URL', '')
+    parsed_db = urlparse(database_url)
+    query = parse_qs(parsed_db.query)
 
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': parsed_db.path.lstrip('/'),
+            'USER': unquote(parsed_db.username or ''),
+            'PASSWORD': unquote(parsed_db.password or ''),
+            'HOST': parsed_db.hostname,
+            'PORT': parsed_db.port or 5432,
+            'OPTIONS': {
+                'sslmode': query.get('sslmode', ['require'])[0],
+                'channel_binding': query.get('channel_binding', ['require'])[0],
+            },
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
@@ -162,6 +183,10 @@ else:
     CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Expose the guest cart session header so the frontend's fetch() can read it
+# cross-origin (browsers hide non-simple response headers by default).
+CORS_EXPOSE_HEADERS = ['X-Cart-Session']
 
 # Rest Framework
 REST_FRAMEWORK = {
