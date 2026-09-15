@@ -15,6 +15,7 @@ from pathlib import Path
 from urllib.parse import urlparse, parse_qs, unquote
 
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -187,6 +188,11 @@ CORS_ALLOW_CREDENTIALS = True
 # Expose the guest cart session header so the frontend's fetch() can read it
 # cross-origin (browsers hide non-simple response headers by default).
 CORS_EXPOSE_HEADERS = ['X-Cart-Session']
+
+# Allow the frontend to *send* the same custom header on requests.
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-cart-session",
+]
 
 # Rest Framework
 REST_FRAMEWORK = {
