@@ -1,0 +1,207 @@
+/* Omawhiyte & Sons — Django admin re-skin.
+   Palette and fonts mirror the storefront (client/src/index.css :root tokens).
+   No admin structure/behavior is changed here — visuals only. */
+
+:root {
+  --oma-ink: #0f172a;
+  --oma-ink-soft: #334155;
+  --oma-orange: #e95112;
+  --oma-orange-hover: #c9410d;
+  --oma-cream: #fbfbfa;
+  --oma-paper: #fff;
+  --oma-line: #e9e8e4;
+  --oma-muted: #657080;
+  --oma-lavender: #f4f4ff;
+}
+
+body {
+  font-family: "Inter", Arial, sans-serif;
+  background: var(--oma-cream);
+  color: var(--oma-ink);
+}
+
+#header, #footer, .module h2, .module caption, .inline-group h2 {
+  font-family: "Inter", Arial, sans-serif;
+}
+
+/* Top header bar */
+#header, body.change-list #header, body.change-form #header, body.dashboard #header {
+  background: var(--oma-ink);
+  color: #fff;
+  padding: 12px 24px;
+  box-shadow: none;
+}
+#header a:link, #header a:visited {
+  color: #fff;
+}
+#branding h1, #branding h1 a:link, #branding h1 a:visited {
+  color: #fff;
+  font-family: "Plus Jakarta Sans", Arial, sans-serif;
+  font-weight: 700;
+}
+#site-name a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.oma-admin-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 4px;
+  padding: 3px;
+}
+#site-name span {
+  font-family: "Plus Jakarta Sans", Arial, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+#site-name span em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--oma-orange);
+  margin-left: 4px;
+}
+#user-tools {
+  font-size: 12px;
+}
+#user-tools a {
+  border-bottom-color: rgba(255,255,255,.4);
+}
+
+/* Breadcrumbs */
+div.breadcrumbs {
+  background: var(--oma-paper);
+  color: var(--oma-muted);
+  border-bottom: 1px solid var(--oma-line);
+  font-size: 12px;
+  padding: 10px 24px;
+}
+div.breadcrumbs a {
+  color: var(--oma-ink-soft);
+}
+
+/* Module boxes / dashboard cards */
+.module {
+  border: 1px solid var(--oma-line);
+  border-radius: 4px;
+  background: var(--oma-paper);
+}
+.module h2, .module caption, .inline-group h2 {
+  background: var(--oma-ink);
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: .02em;
+  border-radius: 0;
+}
+.dashboard .module table th {
+  font-size: 13px;
+}
+
+/* Links & buttons */
+a:link, a:visited {
+  color: var(--oma-ink-soft);
+}
+a:hover {
+  color: var(--oma-orange);
+}
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+  background: var(--oma-ink);
+  color: #fff;
+  border-radius: 2px;
+  font-weight: 600;
+  border: 0;
+  text-transform: none;
+  text-shadow: none;
+}
+.button:hover, input[type=submit]:hover, input[type=button]:hover, a.button:hover {
+  background: var(--oma-ink-soft);
+}
+.button.default, input[type=submit].default, .submit-row input.default {
+  background: var(--oma-orange);
+}
+.button.default:hover, input[type=submit].default:hover {
+  background: var(--oma-orange-hover);
+}
+.object-tools a, .object-tools a:link {
+  background: var(--oma-orange);
+  border-radius: 2px;
+}
+.object-tools a:hover {
+  background: var(--oma-orange-hover);
+}
+
+/* Filters sidebar */
+#changelist-filter {
+  border: 1px solid var(--oma-line);
+  border-radius: 4px;
+  background: var(--oma-paper);
+}
+#changelist-filter h2 {
+  background: var(--oma-lavender);
+  color: var(--oma-ink);
+  font-size: 12px;
+}
+#changelist-filter li.selected a {
+  color: var(--oma-orange);
+  font-weight: 600;
+}
+
+/* Result list / tables */
+#changelist table thead th {
+  background: var(--oma-lavender);
+  color: var(--oma-ink-soft);
+  font-weight: 600;
+}
+#changelist table tbody tr:hover {
+  background: #fafaff;
+}
+.paginator a:link, .paginator a:visited {
+  color: var(--oma-ink-soft);
+}
+
+/* Login page */
+.login #header {
+  justify-content: center;
+}
+.login #container {
+  background: var(--oma-cream);
+}
+.login .form-row label {
+  color: var(--oma-ink-soft);
+}
+.login .submit-row input {
+  background: var(--oma-orange);
+}
+.login .submit-row input:hover {
+  background: var(--oma-orange-hover);
+}
+
+/* Form inputs */
+.form-row input[type=text], .form-row input[type=email], .form-row input[type=password],
+.form-row input[type=number], .form-row textarea, .form-row select, .vTextField {
+  border: 1px solid var(--oma-line);
+  border-radius: 2px;
+}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+  border-color: var(--oma-ink-soft);
+  outline: none;
+}
+
+/* Status/messages */
+ul.messagelist li.success {
+  background: #ecfdf3 var(--oma-orange);
+  background: #ecfdf3;
+  color: #166534;
+  border-left: 3px solid #22c55e;
+}
+ul.messagelist li.warning {
+  border-left: 3px solid var(--oma-orange);
+}
+ul.messagelist li.error {
+  border-left: 3px solid #dc2626;
+}
