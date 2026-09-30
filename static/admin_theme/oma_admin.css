@@ -1,8 +1,25 @@
 /* Omawhiyte & Sons — Django admin re-skin.
    Palette and fonts mirror the storefront (client/src/index.css :root tokens).
-   No admin structure/behavior is changed here — visuals only. */
+   No admin structure/behavior is changed here — visuals only.
 
-:root {
+   Django's admin (4.2+) ships its own light/dark mode driven by
+   prefers-color-scheme and a set of CSS variables it defines on :root
+   (see admin/css/base.css, vars.css). Without overriding those variables
+   too, a device/browser in dark mode mixes Django's dark tokens with our
+   light-mode rules and produces low-contrast/dark-on-dark text. We pin
+   the admin to one consistent light theme by overriding Django's own
+   variables for all three of its color-scheme blocks (root, light, dark). */
+
+html {
+  /* Tell the browser itself there is only a light UI here (scrollbars,
+     form controls, etc.), and stop it from ever activating a dark
+     rendering path for this admin regardless of OS/browser preference. */
+  color-scheme: light only;
+}
+
+:root,
+html[data-theme="light"],
+html[data-theme="dark"] {
   --oma-ink: #0f172a;
   --oma-ink-soft: #334155;
   --oma-orange: #e95112;
@@ -12,6 +29,49 @@
   --oma-line: #e9e8e4;
   --oma-muted: #657080;
   --oma-lavender: #f4f4ff;
+}
+
+/* Django admin's own theme variables (see admin/css/base.css / vars.css),
+   pinned to light-mode values with !important so neither the OS/browser
+   "prefers-color-scheme: dark" media query nor the admin's own light/dark
+   toggle (html[data-theme="dark"]) can reintroduce dark surfaces that our
+   selectors above weren't specific enough to beat. */
+:root,
+html[data-theme="light"],
+html[data-theme="dark"],
+html {
+  --primary: #0f172a !important;
+  --primary-fg: #fff !important;
+  --body-fg: #0f172a !important;
+  --body-bg: #fbfbfa !important;
+  --body-quiet-color: #657080 !important;
+  --body-medium-color: #334155 !important;
+  --body-loud-color: #0f172a !important;
+  --header-color: #fff !important;
+  --header-branding-color: #fff !important;
+  --header-bg: #0f172a !important;
+  --header-link-color: #fff !important;
+  --breadcrumbs-fg: #657080 !important;
+  --breadcrumbs-link-fg: #0f172a !important;
+  --breadcrumbs-bg: #fff !important;
+  --link-fg: #334155 !important;
+  --link-hover-color: #e95112 !important;
+  --link-selected-fg: #e95112 !important;
+  --hairline-color: #e9e8e4 !important;
+  --border-color: #e9e8e4 !important;
+  --button-fg: #fff !important;
+  --button-bg: #0f172a !important;
+  --button-hover-bg: #334155 !important;
+  --default-button-bg: #e95112 !important;
+  --default-button-hover-bg: #c9410d !important;
+  --close-button-bg: #657080 !important;
+  --close-button-hover-bg: #334155 !important;
+  --darkened-bg: #f4f4ff !important;
+  --selected-bg: #fafaff !important;
+  --selected-row: #fafaff !important;
+  --object-tools-fg: #fff !important;
+  --object-tools-bg: #e95112 !important;
+  --object-tools-hover-bg: #c9410d !important;
 }
 
 body {
